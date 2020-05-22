@@ -16,11 +16,11 @@ class ShootCircle:
             dy = 0
             if self.half_screen_size > me['x']:
                 dx = 1
+            elif self.half_screen_size < me['x']:
+                dx = -1
             if self.half_screen_size > me['y']:
                 dy = 1
-            if self.half_screen_size < me['x']:
-                dx = -1
-            if self.half_screen_size < me['y']:
+            elif self.half_screen_size < me['y']:
                 dy = -1
 
             self.comm.rotate(1)
