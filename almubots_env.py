@@ -16,13 +16,13 @@ class AlmubotsEnv(gym.Env):
         # posX, posY, velX, velY, angle, ammo, life, shoot, score
         # low = np.tile(np.array([0, 0, -500, -500, 0, 0, 0, 0, 0], dtype=np.float32), self.num_of_bots)
         # high = np.tile(np.array([900, 900, 500, 500, 360, 10, 20, 1, 1000], dtype=np.float32), self.num_of_bots)
-        #
+
         # self.observation_space = spaces.Box(low, high, dtype=np.float32)
 
         # rotate: -1, 0, 1
         # move: (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 0), (0, 1), (1, -1), (1, 0), (1, 1)
         # shoot: 0, 1
-        self.action_space = spaces.Discrete(8)
+        self.action_space = spaces.Discrete(14)
 
         self.state = None
 
@@ -42,7 +42,7 @@ class AlmubotsEnv(gym.Env):
         #     action -= 27
         # else:
         #     self.comm.shoot(0)
-        #
+
         # # rotate lef, right, non
         # if action < 9:
         #     self.comm.rotate(-1)
@@ -65,7 +65,13 @@ class AlmubotsEnv(gym.Env):
         #     8: (1, 1)
         # }
         # self.comm.move(movement.get(action)[0], movement.get(action)[1])
-        if action == 0:
+        if action >= 7:
+            self.comm.shoot(1)
+            action -= 7
+        else:
+            self.comm.shoot(0)
+
+        if action == 7:
             self.comm.shoot(1)
         elif action == 1:
             self.comm.rotate(1)
@@ -87,31 +93,40 @@ class AlmubotsEnv(gym.Env):
         bots_status = state_raw['bots']
 
         self.state = []
+        self.state.append(bots_status[0]["x"] - bots_status[1]["x"])
+        self.state.append(bots_status[0]["y"] - bots_status[1]["y"])
+        self.state.append(bots_status[0]["vx"] - bots_status[1]["vx"])
+        self.state.append(bots_status[0]["vy"] - bots_status[1]["vy"])
         for bot in bots_status:
-            self.state.append(bot["x"])
-            self.state.append(bot["y"])
-            self.state.append(bot["vx"])
-            self.state.append(bot["vy"])
+
+            # if bot['id'] == self.bot_num:
+            self.state.append(bot["angle"])
+            # self.state.append(bot["ammo"])
 
             if bot['id'] == self.bot_num:
-                self.state.append(bot["angle"])
-                self.state.append(bot["ammo"])
                 self.state.append(bot["score"])
-
-            self.state.append(bot["life"])
+            if bot['id'] != self.bot_num:
+                self.state.append(bot["life"])
             self.state.append(bot["shoot"])
+
 
         if bots_status[self.bot_num]['life'] == 20:
             self.previous_life = 20
 
-        reward = 1 if bots_status[self.bot_num]['shoot'] else 0 + \
-                                                              (bots_status[self.bot_num]['score'] - self.previous_score) * 10 \
+        # reward = 1 if bots_status[self.bot_num]['shoot'] else 0 + \
+        reward = (bots_status[self.bot_num]['score'] - self.previous_score) * 10 \
                                                               - (self.previous_life - bots_status[self.bot_num]['life']) * 2
+
+
+        if self.previous_score > bots_status[self.bot_num]['score']:
+            reward = 0
 
         # print(f'previous_life: {self.previous_life} '
         #       f'current_life: {bots_status[self.bot_num]["life"]} '
+        #       f'shoot: {bots_status[self.bot_num]["shoot"]} '
         #       f'previous_score: {self.previous_score} '
         #       f'current_score: {bots_status[self.bot_num]["score"]} '
+        #       f'duze dzialanie: { (bots_status[self.bot_num]["score"] - self.previous_score)} '
         #       f'reward: {reward}')
 
         self.previous_score = bots_status[self.bot_num]['score']
@@ -119,12 +134,13 @@ class AlmubotsEnv(gym.Env):
 
         done = state_raw['reset']
 
-        return np.array(self.state), reward, done, {}
+
+        return np.array(self.state), 0 if done else reward, done, {}
 
     def reset(self):
         self.previous_life = 20
         self.previous_score = 0
-        return np.zeros((self.num_of_bots * 9 - ((self.num_of_bots-1) * 3)))
+        return np.zeros((self.num_of_bots * 2 + ((self.num_of_bots-1) * 1) + 4 + 1))
 
     def render(self, mode='human'):
         # why render, when u can NOT TO FOR ONLY 19.99$ IF U CALL US RIGHT NOW!
@@ -148,6 +164,19 @@ class AlmubotsEnv(gym.Env):
 
 # shooting
 # 0,0,0,1
+
+
+# rotation
+# -1,0,0,1
+# 1,0,0,1
+
+# vx
+# 0,-1, 0, 1
+# 0,1,0,1
+
+# vy
+# 0,0,-1, 1
+# 0,0,1,1
 
 # rotation, vx, vy, shoot
 # -1,-1,-1,0
