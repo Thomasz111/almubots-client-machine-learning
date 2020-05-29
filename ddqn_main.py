@@ -22,9 +22,9 @@ class DDQN:
     def run(self):
 
         env = AlmubotsEnv(num_of_bots=self.num_of_bots, bot_num=self.bot_num)
-        ddqn_agent = DDQNAgent(alpha=0.0005, gamma=0.99, n_actions=8, epsilon=1.0,
-                               batch_size=64, input_dims=10, epsilon_dec=0.995, epsilon_end=0.01, replace_target=100)
-        n_games = 500
+        ddqn_agent = DDQNAgent(alpha=0.005, gamma=0.99, n_actions=11, epsilon=1.0,
+                               batch_size=64, input_dims=10, epsilon_dec=0.9965, epsilon_end=0.05, replace_target=100)
+        n_games = 3000
 
         if not self.from_scratch:
             try:

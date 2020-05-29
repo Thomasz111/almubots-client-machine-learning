@@ -26,7 +26,7 @@ class AlmubotsEnv(gym.Env):
         # rotate: -1, 0, 1
         # move: (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 0), (0, 1), (1, -1), (1, 0), (1, 1)
         # shoot: 0, 1
-        self.action_space = spaces.Discrete(8)
+        self.action_space = spaces.Discrete(11)
 
         self.state = None
 
@@ -47,7 +47,7 @@ class AlmubotsEnv(gym.Env):
         # else:
         #     self.comm.shoot(0)
 
-        # # rotate lef, right, non
+        # rotate lef, right, non
         # if action < 9:
         #     self.comm.rotate(-1)
         # elif action >= 18:
@@ -75,20 +75,36 @@ class AlmubotsEnv(gym.Env):
         # else:
         #     self.comm.shoot(0)
 
-        if action == 7:
-            self.comm.shoot(1)
-        elif action == 1:
+        movement = {
+            3: (-1, -1),
+            4: (-1, 0),
+            5: (-1, 1),
+            6: (0, -1),
+            # 7: (0, 0),
+            7: (0, 1),
+            8: (1, -1),
+            9: (1, 0),
+            10: (1, 1)
+        }
+
+
+        if action >= 3 and action <= 10:
+            self.comm.move(movement[action][0], movement[action][1])
+
+        # if action == 7:
+        #     self.comm.shoot(1)
+        if action == 1:
             self.comm.rotate(1)
         elif action == 2:
             self.comm.rotate(-1)
-        elif action == 3:
-            self.comm.move(0, 1)
-        elif action == 4:
-            self.comm.move(0, -1)
-        elif action == 5:
-            self.comm.move(1, 0)
-        elif action == 6:
-            self.comm.move(-1, 0)
+        # elif action == 3:
+        #     self.comm.move(0, 1)
+        # elif action == 4:
+        #     self.comm.move(0, -1)
+        # elif action == 5:
+        #     self.comm.move(1, 0)
+        # elif action == 6:
+        #     self.comm.move(-1, 0)
         else:
             pass
 
@@ -125,11 +141,10 @@ class AlmubotsEnv(gym.Env):
         me = bots_status[self.bot_num]
         enemy = bots_status[self.num_of_bots - self.bot_num - 1]
 
-        angle_reward = desired_angle(me, enemy)
-        reward = (bots_status[self.bot_num]['score'] - self.previous_score) * 100 \
-                 + dist(me, enemy) / 300.0 \
-                 - (self.previous_life - bots_status[self.bot_num]['life']) * 20 \
-                 - angle_reward / 180
+        # reward =  #(bots_status[self.bot_num]['score'] - self.previous_score) * 100 \
+                  #- (self.previous_life - bots_status[self.bot_num]['life']) * 20 \
+        reward=- desired_angle(me, enemy) / 180.0 \
+        + desired_angle(enemy, me) / 180.0
 
         if self.previous_score > bots_status[self.bot_num]['score']:
             reward = 0
@@ -178,6 +193,9 @@ class AlmubotsEnv(gym.Env):
 # shooting
 # 0,0,0,1
 
+
+
+# ----------------------------
 
 # rotation
 # -1,0,0,1

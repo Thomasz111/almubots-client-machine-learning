@@ -87,30 +87,30 @@ class DDQNAgent(object):
         return action
 
     def learn(self):
-        if self.memory.mem_cntr > self.batch_size:
-            state, action, reward, new_state, done = \
-                                          self.memory.sample_buffer(self.batch_size)
+        # if self.memory.mem_cntr > self.batch_size:
+        state, action, reward, new_state, done = \
+                                      self.memory.sample_buffer(self.batch_size)
 
-            action_values = np.array(self.action_space, dtype=np.int8)
-            action_indices = np.dot(action, action_values)
+        action_values = np.array(self.action_space, dtype=np.int8)
+        action_indices = np.dot(action, action_values)
 
-            q_next = self.q_target.predict(new_state)
-            q_eval = self.q_eval.predict(new_state)
-            q_pred = self.q_eval.predict(state)
+        q_next = self.q_target.predict(new_state)
+        q_eval = self.q_eval.predict(new_state)
+        q_pred = self.q_eval.predict(state)
 
-            max_actions = np.argmax(q_eval, axis=1)
+        max_actions = np.argmax(q_eval, axis=1)
 
-            q_target = q_pred
+        q_target = q_pred
 
-            batch_index = np.arange(self.batch_size, dtype=np.int32)
+        batch_index = np.arange(self.batch_size, dtype=np.int32)
 
-            q_target[batch_index, action_indices] = reward + \
-                    self.gamma*q_next[batch_index, max_actions.astype(int)]*done
+        q_target[batch_index, action_indices] = reward + \
+                self.gamma*q_next[batch_index, max_actions.astype(int)]*done
 
-            _ = self.q_eval.fit(state, q_target, verbose=0)
+        _ = self.q_eval.fit(state, q_target, verbose=0)
 
-            if self.memory.mem_cntr % self.replace_target == 0:
-                self.update_network_parameters()
+        if self.memory.mem_cntr % self.replace_target == 0:
+            self.update_network_parameters()
 
     def decrease_epsilon(self):
         self.epsilon = self.epsilon * self.epsilon_dec if self.epsilon > \

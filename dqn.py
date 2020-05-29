@@ -104,8 +104,7 @@ class Agent(object):
 
             batch_index = np.arange(self.batch_size, dtype=np.int32)
 
-            q_target[batch_index, action_indices] = reward + \
-                                  self.gamma*np.max(q_next, axis=1)*done
+            q_target[batch_index, action_indices] = reward + self.gamma*np.max(q_next, axis=1)*done
 
             _ = self.q_eval.fit(state, q_target, verbose=0)
 
