@@ -44,18 +44,17 @@ class ReplayBuffer(object):
 
 def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims):
     model = Sequential([
-        Dense(40, input_shape=(input_dims,)),
+        # Dense(40, input_shape=(input_dims,)),
+        # Activation('relu'),
+        # Dense(40),
+        # Activation('relu'),
+        # Dense(n_actions),
+        # Activation('linear')])
+        Dense(fc1_dims, input_shape=(input_dims,)),
         Activation('relu'),
-        Dense(40),
+        Dense(fc2_dims),
         Activation('relu'),
-        Dense(n_actions),
-        Activation('linear')])
-
-                # Dense(fc1_dims, input_shape=(input_dims,)),
-                # Activation('relu'),
-                # Dense(fc2_dims),
-                # Activation('relu'),
-                # Dense(n_actions)])
+        Dense(n_actions)])
 
     model.compile(optimizer=Adam(lr=lr), loss='mse')
 
@@ -72,8 +71,7 @@ class Agent(object):
         self.epsilon_min = epsilon_end
         self.batch_size = batch_size
         self.model_file = fname
-        self.memory = ReplayBuffer(mem_size, input_dims, n_actions,
-                                   discrete=True)
+        self.memory = ReplayBuffer(mem_size, input_dims, n_actions, discrete=True)
         self.q_eval = build_dqn(alpha, n_actions, input_dims, 256, 256)
 
     def remember(self, state, action, reward, new_state, done):
@@ -111,8 +109,8 @@ class Agent(object):
 
             _ = self.q_eval.fit(state, q_target, verbose=0)
 
-            self.epsilon = self.epsilon*self.epsilon_dec if self.epsilon > \
-                           self.epsilon_min else self.epsilon_min
+    def epsilon_decay(self):
+        self.epsilon = self.epsilon * self.epsilon_dec if self.epsilon > self.epsilon_min else self.epsilon_min
 
     def save_model(self):
         self.q_eval.save(self.model_file)

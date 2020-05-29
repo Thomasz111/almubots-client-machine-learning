@@ -1,8 +1,12 @@
+import math
+
 import gym
 from gym import spaces
 import numpy as np
 
 from utils.almubots_comm import Comm
+
+from utils.bot_utils import dist, desired_angle
 
 
 class AlmubotsEnv(gym.Env):
@@ -91,10 +95,13 @@ class AlmubotsEnv(gym.Env):
         state_raw = (self.comm.send())
 
         bots_status = state_raw['bots']
+        max_angle = 360
 
         self.state = []
-        self.state.append(bots_status[0]["x"] - bots_status[1]["x"])
-        self.state.append(bots_status[0]["y"] - bots_status[1]["y"])
+        away_x = bots_status[0]["x"] - bots_status[1]["x"]
+        away_y = bots_status[0]["y"] - bots_status[1]["y"]
+        self.state.append(away_x)
+        self.state.append(away_y)
         self.state.append(bots_status[0]["vx"] - bots_status[1]["vx"])
         self.state.append(bots_status[0]["vy"] - bots_status[1]["vy"])
         for bot in bots_status:
@@ -114,9 +121,15 @@ class AlmubotsEnv(gym.Env):
             self.previous_life = 20
 
         # reward = 1 if bots_status[self.bot_num]['shoot'] else 0 + \
-        reward = (bots_status[self.bot_num]['score'] - self.previous_score) * 10 \
-                                                              - (self.previous_life - bots_status[self.bot_num]['life']) * 2
 
+        me = bots_status[self.bot_num]
+        enemy = bots_status[self.num_of_bots - self.bot_num - 1]
+
+        angle_reward = desired_angle(me, enemy)
+        reward = (bots_status[self.bot_num]['score'] - self.previous_score) * 100 \
+                 + dist(me, enemy) / 300.0 \
+                 - (self.previous_life - bots_status[self.bot_num]['life']) * 20 \
+                 - angle_reward / 180
 
         if self.previous_score > bots_status[self.bot_num]['score']:
             reward = 0
