@@ -14,12 +14,12 @@ class Dqn:
 
     def run(self):
         env = AlmubotsEnv(num_of_bots=self.num_of_bots, bot_num=self.bot_num)
-        lr = 0.005
+        lr = 0.0005
         # lr = 0.01
         n_games = 2000
-        agent = Agent(gamma=0.99, epsilon=1.0, epsilon_dec=0.9988, alpha=lr,
+        agent = Agent(gamma=0.99, epsilon=0.01, epsilon_dec=0.9988, alpha=lr,
                       input_dims=self.num_of_bots * 2 + ((self.num_of_bots-1) * 1) + 4 + 1,
-                      n_actions=14, mem_size=1000000, batch_size=16, epsilon_end=0.01)
+                      n_actions=8, mem_size=1000000, batch_size=16, epsilon_end=0.01)
 
         if not self.from_scratch:
             try:
@@ -68,8 +68,10 @@ class Dqn:
 
         filename = f'plot-bot-{self.bot_num}.png'
 
-        pickle.dump(scores, 'scores.pkl')
-        pickle.dump(eps_history, 'eps_history.pkl')
+        with open('scores.pkl', 'w') as f:
+            pickle.dump(scores, f)
+        with open('eps_history.pkl', 'w') as f:
+            pickle.dump(eps_history, f)
 
         x = [i + 1 for i in range(len(eps_history))]
         plotLearning(x, scores, eps_history, filename)

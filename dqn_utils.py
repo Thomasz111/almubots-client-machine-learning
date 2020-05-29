@@ -34,6 +34,7 @@ def plotLearning(x, scores, epsilons, filename, lines=None):
             plt.axvline(x=line)
 
     plt.savefig(filename)
+    plt.close(fig)
 
 class SkipEnv(gym.Wrapper):
     def __init__(self, env=None, skip=4):

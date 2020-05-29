@@ -26,7 +26,7 @@ class AlmubotsEnv(gym.Env):
         # rotate: -1, 0, 1
         # move: (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 0), (0, 1), (1, -1), (1, 0), (1, 1)
         # shoot: 0, 1
-        self.action_space = spaces.Discrete(14)
+        self.action_space = spaces.Discrete(8)
 
         self.state = None
 
@@ -69,11 +69,11 @@ class AlmubotsEnv(gym.Env):
         #     8: (1, 1)
         # }
         # self.comm.move(movement.get(action)[0], movement.get(action)[1])
-        if action >= 7:
-            self.comm.shoot(1)
-            action -= 7
-        else:
-            self.comm.shoot(0)
+        # if action >= 7:
+        #     self.comm.shoot(1)
+        #     action -= 7
+        # else:
+        #     self.comm.shoot(0)
 
         if action == 7:
             self.comm.shoot(1)
