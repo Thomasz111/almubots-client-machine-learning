@@ -48,8 +48,8 @@ class ShootWinner:
 
     def run(self):
         prev_time = time.clock()
-        comm = Comm(self.bot_num)
-        status = comm.send()
+        status = self.comm.send()
+        i = 0
 
         while True:
             delta_time = (time.clock() - prev_time)
@@ -95,7 +95,9 @@ class ShootWinner:
                     angle_to_enemy = get_angle_between_bots(my, closest_bot)
                 else:
                     angle_to_enemy = self.get_angle_with_speed_prediction(my, closest_bot, delta_time)
-            comm.rotate(rotation_to_target(angle_to_enemy, my['angle'] % 360))
+            if i % 3 == 0:
+                self.comm.rotate(rotation_to_target(angle_to_enemy, my['angle'] % 360))
+                status = self.comm.send()
 
             if my['vx'] > 0:
                 dx = 1
@@ -125,12 +127,15 @@ class ShootWinner:
                 else:
                     dx = x3 - x1
                     dy = y3 - y1
-            comm.move(dx, dy)
+            if i % 3 == 1:
+                self.comm.move(dx, dy)
+                status = self.comm.send()
 
             shoot = False
             if my['ammo'] >= self.max_ammo - 1 or dist(my, bot_to_target) < self.dist_to_shoot \
                     or bot_to_target['life'] < self.small_health:
                 shoot = True
-            comm.shoot(shoot)
-
-            status = comm.send()
+            if i % 3 == 2:
+                self.comm.shoot(shoot)
+                status = self.comm.send()
+            i += 1
