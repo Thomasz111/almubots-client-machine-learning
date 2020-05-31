@@ -78,6 +78,9 @@ class DDQNAgent(object):
     def choose_action(self, state):
         state = state[np.newaxis, :]
         rand = np.random.random()
+
+        print(state)
+
         if rand < self.epsilon:
             action = np.random.choice(self.action_space)
         else:
