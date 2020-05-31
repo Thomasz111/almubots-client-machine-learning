@@ -89,24 +89,24 @@ class Agent(object):
         return action
 
     def learn(self):
-        if self.memory.mem_cntr > self.batch_size:
-            state, action, reward, new_state, done = \
-                                          self.memory.sample_buffer(self.batch_size)
+        # if self.memory.mem_cntr > self.batch_size:
+        state, action, reward, new_state, done = \
+                                      self.memory.sample_buffer(self.batch_size)
 
-            action_values = np.array(self.action_space, dtype=np.int8)
-            action_indices = np.dot(action, action_values)
+        action_values = np.array(self.action_space, dtype=np.int8)
+        action_indices = np.dot(action, action_values)
 
-            q_eval = self.q_eval.predict(state)
+        q_eval = self.q_eval.predict(state)
 
-            q_next = self.q_eval.predict(new_state)
+        q_next = self.q_eval.predict(new_state)
 
-            q_target = q_eval.copy()
+        q_target = q_eval.copy()
 
-            batch_index = np.arange(self.batch_size, dtype=np.int32)
+        batch_index = np.arange(self.batch_size, dtype=np.int32)
 
-            q_target[batch_index, action_indices] = reward + self.gamma*np.max(q_next, axis=1)*done
+        q_target[batch_index, action_indices] = reward + self.gamma*np.max(q_next, axis=1)*done
 
-            _ = self.q_eval.fit(state, q_target, verbose=0)
+        _ = self.q_eval.fit(state, q_target, verbose=0)
 
     def epsilon_decay(self):
         self.epsilon = self.epsilon * self.epsilon_dec if self.epsilon > self.epsilon_min else self.epsilon_min

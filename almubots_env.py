@@ -26,7 +26,7 @@ class AlmubotsEnv(gym.Env):
         # rotate: -1, 0, 1
         # move: (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 0), (0, 1), (1, -1), (1, 0), (1, 1)
         # shoot: 0, 1
-        self.action_space = spaces.Discrete(11)
+        self.action_space = spaces.Discrete(14)
 
         self.state = None
 
@@ -69,42 +69,42 @@ class AlmubotsEnv(gym.Env):
         #     8: (1, 1)
         # }
         # self.comm.move(movement.get(action)[0], movement.get(action)[1])
-        # if action >= 7:
-        #     self.comm.shoot(1)
-        #     action -= 7
+        if action >= 7:
+            self.comm.shoot(1)
+            action -= 7
         # else:
         #     self.comm.shoot(0)
 
-        movement = {
-            3: (-1, -1),
-            4: (-1, 0),
-            5: (-1, 1),
-            6: (0, -1),
-            # 7: (0, 0),
-            7: (0, 1),
-            8: (1, -1),
-            9: (1, 0),
-            10: (1, 1)
-        }
+        # movement = {
+        #     3: (-1, -1),
+        #     4: (-1, 0),
+        #     5: (-1, 1),
+        #     6: (0, -1),
+        #     # 7: (0, 0),
+        #     7: (0, 1),
+        #     8: (1, -1),
+        #     9: (1, 0),
+        #     10: (1, 1)
+        # }
 
 
-        if action >= 3 and action <= 10:
-            self.comm.move(movement[action][0], movement[action][1])
+        # if action >= 3 and action <= 10:
+        #     self.comm.move(movement[action][0], movement[action][1])
 
-        # if action == 7:
-        #     self.comm.shoot(1)
+        if action == 7:
+            self.comm.shoot(1)
         if action == 1:
             self.comm.rotate(1)
         elif action == 2:
             self.comm.rotate(-1)
-        # elif action == 3:
-        #     self.comm.move(0, 1)
-        # elif action == 4:
-        #     self.comm.move(0, -1)
-        # elif action == 5:
-        #     self.comm.move(1, 0)
-        # elif action == 6:
-        #     self.comm.move(-1, 0)
+        elif action == 3:
+            self.comm.move(0, 1)
+        elif action == 4:
+            self.comm.move(0, -1)
+        elif action == 5:
+            self.comm.move(1, 0)
+        elif action == 6:
+            self.comm.move(-1, 0)
         else:
             pass
 
@@ -141,10 +141,11 @@ class AlmubotsEnv(gym.Env):
         me = bots_status[self.bot_num]
         enemy = bots_status[self.num_of_bots - self.bot_num - 1]
 
-        # reward =  #(bots_status[self.bot_num]['score'] - self.previous_score) * 100 \
-                  #- (self.previous_life - bots_status[self.bot_num]['life']) * 20 \
-        reward=- desired_angle(me, enemy) / 180.0 \
-        + desired_angle(enemy, me) / 180.0
+        reward =  (bots_status[self.bot_num]['score'] - self.previous_score) * 100 \
+                  - (self.previous_life - bots_status[self.bot_num]['life']) * 20 \
+                + dist(bots_status[self.bot_num], bots_status[self.num_of_bots - self.bot_num - 1]) / 300 \
+                - desired_angle(me, enemy) / 180.0
+                # + desired_angle(enemy, me) / 180.0
 
         if self.previous_score > bots_status[self.bot_num]['score']:
             reward = 0
@@ -162,13 +163,13 @@ class AlmubotsEnv(gym.Env):
 
         done = state_raw['reset']
 
-
         return np.array(self.state), 0 if done else reward, done, {}
 
     def reset(self):
         self.previous_life = 20
         self.previous_score = 0
-        return np.zeros((self.num_of_bots * 2 + ((self.num_of_bots-1) * 1) + 4 + 1))
+        return np.zeros(10)
+        # return np.zeros((self.num_of_bots * 2 + ((self.num_of_bots-1) * 1) + 4 + 1))
 
     def render(self, mode='human'):
         # why render, when u can NOT TO FOR ONLY 19.99$ IF U CALL US RIGHT NOW!
