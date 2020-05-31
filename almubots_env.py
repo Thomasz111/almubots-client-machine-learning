@@ -6,7 +6,7 @@ import numpy as np
 
 from utils.almubots_comm import Comm
 
-from utils.bot_utils import dist, desired_angle
+from utils.bot_utils import dist, desired_angle, desired_angle_directional
 
 
 class AlmubotsEnv(gym.Env):
@@ -26,7 +26,7 @@ class AlmubotsEnv(gym.Env):
         # rotate: -1, 0, 1
         # move: (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 0), (0, 1), (1, -1), (1, 0), (1, 1)
         # shoot: 0, 1
-        self.action_space = spaces.Discrete(3)
+        self.action_space = spaces.Discrete(54)
 
         self.state = None
 
@@ -41,34 +41,34 @@ class AlmubotsEnv(gym.Env):
 
         # for values go to end of this file
         # shoot or not
-        # if action >= 27:
-        #     self.comm.shoot(1)
-        #     action -= 27
-        # else:
-        #     self.comm.shoot(0)
+        if action >= 27:
+            self.comm.shoot(1)
+            action -= 27
+        else:
+            self.comm.shoot(0)
 
         # rotate lef, right, non
-        # if action < 9:
-        #     self.comm.rotate(-1)
-        # elif action >= 18:
-        #     self.comm.rotate(1)
-        #     action -= 18
-        # else:
-        #     self.comm.rotate(0)
-        #     action -= 9
-        # # move x, y
-        # movement = {
-        #     0: (-1, -1),
-        #     1: (-1, 0),
-        #     2: (-1, 1),
-        #     3: (0, -1),
-        #     4: (0, 0),
-        #     5: (0, 1),
-        #     6: (1, -1),
-        #     7: (1, 0),
-        #     8: (1, 1)
-        # }
-        # self.comm.move(movement.get(action)[0], movement.get(action)[1])
+        if action < 9:
+            self.comm.rotate(-1)
+        elif action >= 18:
+            self.comm.rotate(1)
+            action -= 18
+        else:
+            self.comm.rotate(0)
+            action -= 9
+        # move x, y
+        movement = {
+            0: (-1, -1),
+            1: (-1, 0),
+            2: (-1, 1),
+            3: (0, -1),
+            4: (0, 0),
+            5: (0, 1),
+            6: (1, -1),
+            7: (1, 0),
+            8: (1, 1)
+        }
+        self.comm.move(movement.get(action)[0], movement.get(action)[1])
         # if action >= 7:
         #     self.comm.shoot(1)
         #     action -= 7
@@ -93,10 +93,10 @@ class AlmubotsEnv(gym.Env):
 
         # if action == 3:
         #     self.comm.shoot(1)
-        if action == 1:
-            self.comm.rotate(1)
-        elif action == 2:
-            self.comm.rotate(-1)
+        # if action == 1:
+        #     self.comm.rotate(1)
+        # elif action == 2:
+        #     self.comm.rotate(-1)
         # elif action == 3:
         #     self.comm.move(0, 1)
         # elif action == 4:
@@ -105,9 +105,9 @@ class AlmubotsEnv(gym.Env):
         #     self.comm.move(1, 0)
         # elif action == 6:
         #     self.comm.move(-1, 0)
-        else:
-            pass
-
+        # else:
+        #     pass
+        #
         state_raw = (self.comm.send())
 
         bots_status = state_raw['bots']
@@ -116,14 +116,34 @@ class AlmubotsEnv(gym.Env):
         self.state = []
         away_x = bots_status[0]["x"] - bots_status[1]["x"]
         away_y = bots_status[0]["y"] - bots_status[1]["y"]
+
+
+        me = bots_status[0]
+        enemy = bots_status[1]
+
+
+        # angle_between_me_and_enemy = desired_angle(me, enemy)
+
+
+        # my_angle = int(bots_status[0]["angle"])
+        #
+        # if my_angle < 0:
+        #     my_angle += 360
+        #
+        # my_angle %= 360  # my angle is now at 0-360
+
+        # directional = desired_angle_directional(bots_status[0], bots_status[1])
+        # self.state.append(directional)
+        # print(directional)
+
         self.state.append(away_x)
         self.state.append(away_y)
         # self.state.append(bots_status[0]["vx"] - bots_status[1]["vx"])
         # self.state.append(bots_status[0]["vy"] - bots_status[1]["vy"])
         for bot in bots_status:
 
-            if bot['id'] == self.bot_num:
-                self.state.append(bot["angle"])
+            # if bot['id'] == self.bot_num:
+            self.state.append(bot["angle"])
             # self.state.append(bot["ammo"])
 
             # if bot['id'] == self.bot_num:
@@ -144,11 +164,15 @@ class AlmubotsEnv(gym.Env):
         # reward =  (bots_status[self.bot_num]['score'] - self.previous_score) * 100 \
                   # - (self.previous_life - bots_status[self.bot_num]['life']) * 20 \
                 # + dist(bots_status[self.bot_num], bots_status[self.num_of_bots - self.bot_num - 1]) / 300 \
-        reward = - desired_angle(me, enemy) # / 180.0 #\
+        reward_angle = - desired_angle(me, enemy)  # / 180.0 #\
+        reward_shoot =  (bots_status[self.bot_num]['score'] - self.previous_score) * 200
+        reward_move = + desired_angle(enemy, me) # / 180.0 #\
                 # + desired_angle(enemy, me) / 180.0
 
         if self.previous_score > bots_status[self.bot_num]['score']:
-            reward = 0
+            reward_angle = 0
+            reward_shoot = 0
+            reward_move = 0
 
         # print(f'previous_life: {self.previous_life} '
         #       f'current_life: {bots_status[self.bot_num]["life"]} '
@@ -163,12 +187,12 @@ class AlmubotsEnv(gym.Env):
 
         done = state_raw['reset']
 
-        return np.array(self.state), 0 if done else reward, done, {}
+        return (away_x, away_y, bots_status[0]["angle"], bots_status[1]['angle']), (0,0,0) if done else (reward_angle, reward_shoot, reward_move), done, {}
 
     def reset(self):
         self.previous_life = 20
         self.previous_score = 0
-        return np.zeros(3)
+        return np.zeros(4)
         # return np.zeros((self.num_of_bots * 2 + ((self.num_of_bots-1) * 1) + 4 + 1))
 
     def render(self, mode='human'):

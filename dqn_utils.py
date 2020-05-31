@@ -6,6 +6,8 @@ def plotLearning(x, scores, epsilons, filename, lines=None):
     fig=plt.figure()
     ax=fig.add_subplot(111, label="1")
     ax2=fig.add_subplot(111, label="2", frame_on=False)
+    ax3=fig.add_subplot(111, label="3", frame_on=False)
+    ax4=fig.add_subplot(111, label="4", frame_on=False)
 
     ax.plot(x, epsilons, color="C0")
     ax.set_xlabel("Game", color="C0")
@@ -13,21 +15,23 @@ def plotLearning(x, scores, epsilons, filename, lines=None):
     ax.tick_params(axis='x', colors="C0")
     ax.tick_params(axis='y', colors="C0")
 
-    N = len(scores)
-    running_avg = np.empty(N)
-    for t in range(N):
-	    running_avg[t] = np.mean(scores[max(0, t-20):(t+1)])
+    for i, (axx, scores) in enumerate(zip([ax2, ax3, ax4], scores)):
+        N = len(scores)
+        running_avg = np.empty(N)
+        for t in range(N):
+            running_avg[t] = np.mean(scores[max(0, t - 20):(t + 1)])
 
-    ax2.scatter(x, running_avg, color="C1")
-    #ax2.xaxis.tick_top()
-    ax2.axes.get_xaxis().set_visible(False)
-    ax2.yaxis.tick_right()
-    #ax2.set_xlabel('x label 2', color="C1")
-    ax2.set_ylabel('Score', color="C1")
-    #ax2.xaxis.set_label_position('top')
-    ax2.yaxis.set_label_position('right')
-    #ax2.tick_params(axis='x', colors="C1")
-    ax2.tick_params(axis='y', colors="C1")
+        colorix = "C1" if i == 0 else ("red" if i == 1 else "blue")
+        axx.plot(x, running_avg, color=colorix)
+        #axx.xaxis.tick_top()
+        axx.axes.get_xaxis().set_visible(False)
+        axx.yaxis.tick_right()
+        #axx.set_xlabel('x label 2', color="C1")
+        axx.set_ylabel('Angle' if i == 0 else ('Shoot' if i == 1 else 'Move'), color=colorix)
+        #axx.xaxis.set_label_position('top')
+        axx.yaxis.set_label_position('right')
+        #axx.tick_params(axis='x', colors="C1")
+        axx.tick_params(axis='y', colors=colorix)
 
     if lines is not None:
         for line in lines:
