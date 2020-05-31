@@ -22,21 +22,25 @@ class ShootClosestBot:
         angle_to_enemy -= ang
         angle_to_enemy //= 1
         angle_to_enemy %= 360
+
+        rotate = 0
+        shoot = 0
         if angle_to_enemy % 10 != 5:
 
             angle_to_enemy = round(angle_to_enemy / 10, 0)
             angle_to_enemy %= 36
 
             if angle_to_enemy > 18:
-                self.comm.rotate(-(36 - angle_to_enemy))
+                rotate = -(36 - angle_to_enemy)
             else:
-                self.comm.rotate(angle_to_enemy)
+                rotate = angle_to_enemy
 
             if my_bot['ammo'] < 5:
                 if closest_bot == main_bot:
-                    self.comm.shoot(1)
+                    shoot = 1
             else:
-                self.comm.shoot(1)
+                shoot = 1
+        return rotate, shoot
 
     def run(self):
         status = self.comm.send()
@@ -87,11 +91,19 @@ class ShootClosestBot:
             # move to enemy
             if dist(my_bot, closest_bot) > 150:
                 self.comm.move(sgn(lowest_hp_bot['x'] - my_x), sgn(lowest_hp_bot['y'] - my_y))
+                status = self.comm.send()
             else:
                 self.comm.move(-sgn(lowest_hp_bot['x'] - my_x), -sgn(lowest_hp_bot['y'] - my_y))
+                status = self.comm.send()
             if dist(my_bot, lowest_hp_bot) < 300 and lowest_hp_bot['life'] > 0:
                 closest_bot = lowest_hp_bot
 
-            self.rotateBot(my_bot, closest_bot, lowest_hp_bot)
+            rotate, shoot = self.rotateBot(my_bot, closest_bot, lowest_hp_bot)
 
-            status = self.comm.send()
+            if rotate != 0:
+                self.comm.rotate(rotate)
+                status = self.comm.send()
+
+            if shoot != 0:
+                self.comm.shoot(shoot)
+                status = self.comm.send()

@@ -23,6 +23,10 @@ class ShootCircle:
             elif self.half_screen_size < me['y']:
                 dy = -1
 
-            self.comm.rotate(1)
             self.comm.move(dx, dy)
+            self.comm.send()
+
+            self.comm.rotate(1)
+            self.comm.send()
+
             self.comm.shoot(True)
