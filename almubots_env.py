@@ -166,7 +166,7 @@ class AlmubotsEnv(gym.Env):
                 # + dist(bots_status[self.bot_num], bots_status[self.num_of_bots - self.bot_num - 1]) / 300 \
         reward_angle = - desired_angle(me, enemy)  # / 180.0 #\
         reward_shoot =  (bots_status[self.bot_num]['score'] - self.previous_score) * 200
-        reward_move = + desired_angle(enemy, me) # / 180.0 #\
+        reward_move = desired_angle(enemy, me) # / 180.0 #\
                 # + desired_angle(enemy, me) / 180.0
 
         if self.previous_score > bots_status[self.bot_num]['score']:

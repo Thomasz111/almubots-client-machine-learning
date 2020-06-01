@@ -16,7 +16,7 @@ class Dqn:
         env = AlmubotsEnv(num_of_bots=self.num_of_bots, bot_num=self.bot_num)
         lr = 0.0005
         # lr = 0.01
-        n_games = 1000
+        n_games = 5000
 
         # self.q_eval_angle = build_dqn(alpha, n_actions=3, input_dims=3, fc1_dims=256, fc2_dims=256) # obserwacje: x, y, kat lufy nasz
         # akcje: lufa w lewo, lufa w prawo, nic
@@ -26,16 +26,16 @@ class Dqn:
         # akcje: gora, dol, lewo, prawo, ukos, ukos, ukos, ukos, nic
 
 
-        agent_angle = Agent(gamma=0.99, epsilon=1.0, epsilon_dec=0.99, alpha=lr,
+        agent_angle = Agent(gamma=0.99, epsilon=1.0, epsilon_dec=0.999, alpha=lr,
                       # input_dims=self.num_of_bots * 2 + ((self.num_of_bots-1) * 1) + 4 + 1,
                       input_dims=3, fname='dqn_angle_model.h5',
-                      n_actions=3, mem_size=1000000, batch_size=16, epsilon_end=0.01)
-        agent_shoot = Agent(gamma=0.99, epsilon=1.0, epsilon_dec=0.99, alpha=lr,
+                      n_actions=3, mem_size=100000000, batch_size=16, epsilon_end=0.05)
+        agent_shoot = Agent(gamma=0.99, epsilon=1.0, epsilon_dec=0.999, alpha=lr,
                       input_dims=3, fname='dqn_shoot_model.h5',
-                      n_actions=2, mem_size=1000000, batch_size=16, epsilon_end=0.01)
-        agent_move = Agent(gamma=0.99, epsilon=1.0, epsilon_dec=0.99, alpha=lr,
-                      input_dims=1, fname='dqn_move_model.h5',
-                      n_actions=9, mem_size=1000000, batch_size=16, epsilon_end=0.01)
+                      n_actions=2, mem_size=100000000, batch_size=16, epsilon_end=0.05)
+        agent_move = Agent(gamma=0.99, epsilon=1.0, epsilon_dec=0.999, alpha=lr,
+                      input_dims=3, fname='dqn_move_model.h5',
+                      n_actions=9, mem_size=100000000, batch_size=16, epsilon_end=0.05)
 
         if not self.from_scratch:
             try:
@@ -68,7 +68,7 @@ class Dqn:
 
                     action_angle = agent_angle.choose_action(np.array([x,y,angl_my]))
                     action_shoot = agent_shoot.choose_action(np.array([x,y,angl_my]))
-                    action_move = agent_move.choose_action(np.array([angl_enemy]))
+                    action_move = agent_move.choose_action(np.array([x,y,angl_enemy]))
                     observation_, reward, done, info = env.step(action_shoot * 27 + action_angle * 9 + action_move)
                     score = (score[0] + reward[0], score[1] + reward[1], score[2] + reward[2])
 
@@ -76,7 +76,7 @@ class Dqn:
 
                     agent_angle.remember(np.array([x,y,angl_my]), action_angle, reward[0], np.array([x_,y_,angl_my_]), int(done))
                     agent_shoot.remember(np.array([x,y,angl_my]), action_shoot, reward[1], np.array([x_,y_,angl_my_]), int(done))
-                    agent_move.remember(np.array([angl_enemy]), action_move, reward[2], np.array([angl_enemy_]), int(done))
+                    agent_move.remember(np.array([x,y,angl_enemy]), action_move, reward[2], np.array([x,y ,angl_enemy_]), int(done))
                     observation = observation_
                     agent_angle.learn()
                     agent_shoot.learn()
