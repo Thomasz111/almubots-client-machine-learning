@@ -1,4 +1,5 @@
 from math import atan2, pi, sqrt
+import numpy as np
 
 
 def dist(my_bot, enemy_bot):
@@ -14,11 +15,18 @@ def sgn(val):
         return -1
     return 0
 
+min_values = np.array([0, 0, -500, -500, 0, 0, -500, -500, 0])
+max_values = np.array([800, 800, 500, 500, 800, 800, 500, 500, 360])
+
+
+def normalize_observation(observation):
+    return (observation-min_values) / (max_values-min_values)
+
 
 def desired_angle(my_bot, enemy_bot):
     """returns value between 0-180. 0 means aiming directly at enemy_bot"""
-    angle = math.atan2(enemy_bot['y'] - my_bot['y'], enemy_bot['x'] - my_bot['x'])
-    angle = (angle * 180 / math.pi) % 360
+    angle = atan2(enemy_bot['y'] - my_bot['y'], enemy_bot['x'] - my_bot['x'])
+    angle = (angle * 180 / pi) % 360
 
     if angle < 0:
         angle += 360

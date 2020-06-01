@@ -7,6 +7,20 @@ class Comm:
         self.cmd = {'botNo': bot_number}
         self.reset_cmd
 
+    def status(self):
+        ip, port = 'localhost', '8080'
+        url = f'http://{ip}:{port}/status'
+        connected = False
+        raw = None
+        while not connected:
+            try:
+                raw = requests.get(url, json=self.cmd)
+                connected = True
+            except requests.exceptions.ConnectionError:
+                print('Connection refused')
+
+        return json.loads(raw.text)
+
     def send(self):
         ip, port = 'localhost', '8080'
         url = f'http://{ip}:{port}/cmd'

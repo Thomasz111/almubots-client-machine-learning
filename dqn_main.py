@@ -5,6 +5,9 @@ from dqn_utils import plotLearning
 from almubots_env import AlmubotsEnv
 import pickle
 
+from utils.bot_utils import normalize_observation
+
+
 class Dqn:
 
     def __init__(self, num_of_bots: int, bot_num: int, from_scratch: bool):
@@ -14,13 +17,13 @@ class Dqn:
 
     def run(self):
         env = AlmubotsEnv(num_of_bots=self.num_of_bots, bot_num=self.bot_num)
-        lr = 0.0005
-        # lr = 0.01
-        n_games = 10000
-        agent = Agent(gamma=0.99, epsilon=1.0, epsilon_dec=0.9996, alpha=lr,
+        # lr = 0.0005
+        lr = 0.01
+        n_games = 3000
+        agent = Agent(gamma=0.99, epsilon=1.0, epsilon_dec=0.995, alpha=lr,
                       # input_dims=self.num_of_bots * 2 + ((self.num_of_bots-1) * 1) + 4 + 1,
-                      input_dims=10,
-                      n_actions=14, mem_size=1000000, batch_size=16, epsilon_end=0.01)
+                      input_dims=9,
+                      n_actions=9, mem_size=100_000_000, batch_size=128, epsilon_end=0.001)
 
         if not self.from_scratch:
             try:
@@ -41,10 +44,11 @@ class Dqn:
             for i in range(n_games):
                 done = False
                 score = 0
-                observation = env.reset()
+                observation = normalize_observation(env.reset())
                 while not done:
                     action = agent.choose_action(observation)
                     observation_, reward, done, info = env.step(action)
+                    observation_ = normalize_observation(observation_)
                     score += reward
                     agent.remember(observation, action, reward, observation_, int(done))
                     observation = observation_

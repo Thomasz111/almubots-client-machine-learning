@@ -18,7 +18,7 @@ def plotLearning(x, scores, epsilons, filename, lines=None):
     for t in range(N):
 	    running_avg[t] = np.mean(scores[max(0, t-20):(t+1)])
 
-    ax2.scatter(x, running_avg, color="C1")
+    ax2.plot(x, running_avg, color="C1")
     #ax2.xaxis.tick_top()
     ax2.axes.get_xaxis().set_visible(False)
     ax2.yaxis.tick_right()
